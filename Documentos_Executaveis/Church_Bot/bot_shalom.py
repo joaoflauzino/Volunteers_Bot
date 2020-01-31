@@ -28,8 +28,8 @@ import unidecode #accents
 #--------------------------------------------------------#
 
 config = configparser.ConfigParser() #ConfigParser
-config.read('//home//flask//Boris_Test//Telegram//Config//config.ini') # Accessing the config files
-token = config['TOKEN']['test_token'] #Accessing the token of Telegram
+config.read('C://Users//joni_//Documentos_Executaveis//Church_Bot//Config//config.ini') # Accessing the config files
+token = config['TOKEN']['token'] #Accessing the token of Telegram
 file = config['SERVICE_LOGS']['file']
 
 #-------------------------------------------------------#
@@ -43,20 +43,6 @@ logging.basicConfig(filename= file + datetime.datetime.now().strftime("%y%m%d") 
 logger = logging.getLogger(__name__) #logs
 
 ##################################################### Telegram functions ######################################################################################################
-
-#-------------------------------------------------------#
-#Description: This function says "hello" when "/start" is sent by the user
-#Paramater bot: Bot that is active
-#Parameter update: Updates sent by interactions
-#Return: Response to the user
-#Author: João Lucas Flauzino Cassiano 
-#Createat: 2019-01-30
-#--------------------------------------------------------#
-
-def send_hello(bot, update):
-
-    res = 'Olá, em que posso ajudar?'
-    update.message.reply_text(res, parse_mode = 'MARKDOWN')
 
 #-------------------------------------------------------#
 #Description: This function denies when an user tries to send a file
@@ -81,10 +67,31 @@ def send_files(bot, update):
 #Createat: 2019-01-30
 #--------------------------------------------------------#
 
-def send_answer(bot, update):
+def send_answer(bot, update, user_data):
 
-    res = 'Olá ' + update.message.from_user.username + '! Tudo bem?'
-    update.message.reply_text(res, parse_mode = 'MARKDOWN')
+    msg = unidecode.unidecode(update.message.text.lower())
+
+    if 'agenda' in msg:
+         update.message.reply_text('Você tem compromisso as 17h no sábado.', parse_mode = 'MARKDOWN')
+    if 'horarios' in msg:
+         update.message.reply_text('Hoje as palavras são as 17h, 19h e 21h.', parse_mode = 'MARKDOWN')
+    if 'ingressos' in msg:
+         update.message.reply_text('Os ingressos estão esgotados.', parse_mode = 'MARKDOWN')
+
+    else:
+
+        if msg == 'informacoes' or msg == 'ola' or msg == 'boa noite' or msg == 'bom dia' or msg == 'boa tarde' or msg == '/start':  
+
+            buttons = [['Agenda', 'Horários', 'Ingressos']]
+            markup = ReplyKeyboardMarkup(buttons, one_time_keyboard=True, pass_user_data=True, resize_keyboard=True)
+            res = 'Olá ' + update.message.from_user.username + '! Tudo bem? Por favor, escolha o que deseja saber.'
+            update.message.reply_text(res, parse_mode = 'MARKDOWN', reply_markup = markup)
+
+        else:
+
+            update.message.reply_text('Caso desejar mais alguma coisa, é só dizer "informações"', parse_mode = 'MARKDOWN')
+
+
 
 
 ####################################################### Main #################################################################################################################
@@ -105,19 +112,13 @@ def main():
     dp = updater.dispatcher
 
     #handler for message
-    msg_txt_handler = MessageHandler(Filters.text | Filters.command, send_answer,  pass_user_data = True)
-
-    #handler for command
-    command_handler = CommandHandler('start', send_hello)
+    msg_txt_handler = MessageHandler(Filters.text | Filters.command, send_answer, pass_user_data = True)
 
     #Hanfler for video, photo, document, voice and sticker
     msg_handler = MessageHandler(Filters.video | Filters.photo | Filters.document | Filters.voice | Filters.sticker , send_files)
 
     #Dispatcher
     dp.add_handler(msg_txt_handler)
-
-    #Dispatcher
-    dp.add_handler(command_handler)
 
     #Dispatcher
     dp.add_handler(msg_handler)
